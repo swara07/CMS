@@ -107,6 +107,7 @@ class Ui_MainWindow(object):
         print(textcv)
         main_image=cv2.imread(filename)
         main_image=cv2.putText(main_image,textcv,(10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        self.tmp=main_image
         frame=cv2.cvtColor(main_image,cv2.COLOR_BGR2RGB)
         image=QImage(frame,frame.shape[1],frame.shape[0],frame.strides[0],QImage.Format_RGB888)
     
@@ -116,20 +117,25 @@ class Ui_MainWindow(object):
             if pixmap.isNull():
                 return
             self.image.setPixmap(pixmap)
+            
 
-            # dirpath = os.path.dirname(filename)
-            # print(dirpath)
-            # self.fileList = []
-            # for f in os.listdir(dirpath):
-            #     fpath = os.path.join(dirpath, f)
-            #     if os.path.isfile(fpath) and f.endswith(('.png', '.jpg', '.jpeg','.bmp')):
-            #         self.fileList.append(fpath)
-            # self.fileList.sort()
-            # self.dirIterator = iter(self.fileList)
-            # print(self.fileList)
-            # while True:
-            #     if next(self.dirIterator) in self.fileList:
-            #         break
+    def load_imagetext(self):
+        global filename
+        global main_image
+        textcv=os.path.basename(filename)
+        print("text on file----------------"+textcv)
+        main_image=cv2.imread(filename)
+        main_image=cv2.putText(main_image,textcv,(10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        self.tmp=main_image
+        frame=cv2.cvtColor(main_image,cv2.COLOR_BGR2RGB)
+        image=QImage(frame,frame.shape[1],frame.shape[0],frame.strides[0],QImage.Format_RGB888)
+        if filename:
+            pixmap = QtGui.QPixmap(image).scaled(self.image.size(), 
+                    QtCore.Qt.KeepAspectRatio)
+            if pixmap.isNull():
+                return
+            self.image.setPixmap(pixmap)
+        
     
     def next_image(self):
         global filename
@@ -142,7 +148,7 @@ class Ui_MainWindow(object):
                     self.fileList.remove(filename)
                     self.next_image()
                 else:
-                    self.image.setPixmap(pixmap)
+                    self.load_imagetext()
             except:
                 self.dirIterator = iter(self.fileList)
                 self.next_image()
@@ -152,6 +158,7 @@ class Ui_MainWindow(object):
 
     def save_image(self):
         global filename
+        global main_image
         fn = QFileDialog.getSaveFileName(filter="JPG(*.jpg);;PNG(*.png);;TIFF(*.tiff);;BMP(*.bmp)")[0]
         print(fn)
         print(filename)
@@ -162,12 +169,19 @@ class Ui_MainWindow(object):
     def save_dir(self):
         global saving_dir
         saving_dir = QFileDialog.getExistingDirectory(None, 'Select a folder:', '', QFileDialog.ShowDirsOnly)
+        if saving_dir=='':
+            return
         print(saving_dir)
 
+
     def open_dir(self):
+
+        global filename
         global opening_dir
         opening_dir = QFileDialog.getExistingDirectory(None, 'Select a folder:', '', QFileDialog.ShowDirsOnly)
-        print(opening_dir)
+        if opening_dir=='':
+            return
+        print("opening dir -----------:"+opening_dir)
         self.fileList = []
         for f in os.listdir(opening_dir):
             fpath = os.path.join(opening_dir, f)
@@ -176,10 +190,8 @@ class Ui_MainWindow(object):
         self.fileList.sort()
         self.dirIterator = iter(self.fileList)
         print(self.fileList)
-        pixmap = QtGui.QPixmap(self.fileList[0]).scaled(self.image.size(), QtCore.Qt.KeepAspectRatio)
-        if pixmap.isNull():
-            return
-        self.image.setPixmap(pixmap)
+        filename=self.fileList[0]
+        self.load_imagetext()
 
 
 
